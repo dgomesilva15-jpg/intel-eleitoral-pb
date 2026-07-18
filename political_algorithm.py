@@ -32,12 +32,28 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constantes de peso padrão
 # ---------------------------------------------------------------------------
-DEFAULT_WEIGHTS = {
-    "geo": 10.0,           # Aumentado para garantir setores geograficamente coesos
-    "eleitorado": 1.5,     # Reduzido para evitar saltos no mapa
-    "alinhamento": 1.0,    # Peso do alinhamento com o prefeito
-    "lideranca": 1.0,      # Peso do peso_lideranca (campo do data_editor)
-    "status_aliado": 1.2,  # Bonus extra para municípios marcados como "Aliado"
+ESTRATEGIAS_PESOS = {
+    "Geográfica (Padrão)": {
+        "geo": 15.0,           
+        "eleitorado": 0.5,     
+        "alinhamento": 0.5,    
+        "lideranca": 0.5,      
+        "status_aliado": 0.5,  
+    },
+    "Equilíbrio de Eleitores": {
+        "geo": 3.0,
+        "eleitorado": 8.0,
+        "alinhamento": 0.5,
+        "lideranca": 0.5,
+        "status_aliado": 0.5,
+    },
+    "Afinidade Política": {
+        "geo": 4.0,
+        "eleitorado": 0.5,
+        "alinhamento": 5.0,
+        "lideranca": 2.0,
+        "status_aliado": 6.0,
+    }
 }
 
 STATUS_COLORS = {
@@ -160,31 +176,14 @@ def _identificar_polo(grupo: gpd.GeoDataFrame) -> int:
 def clusterizar_municipios(
     gdf: gpd.GeoDataFrame,
     n_setores: int = 15,
-    pesos: Optional[Dict[str, float]] = None,
+    estrategia: str = "Geográfica (Padrão)",
     polos_fixados: Optional[List[int]] = None,
     random_state: int = 42,
 ) -> Tuple[gpd.GeoDataFrame, List[Setor]]:
     """
     Algoritmo principal de clusterização K-Means ponderado com Override Manual.
-
-    Estratégia de Override (Human-in-the-Loop):
-    1. Cidades com fixado_polo=True são extraídas e atribuídas a clusters únicos.
-    2. O K-Means é inicializado com os centroides dos polos fixados.
-    3. Os municípios restantes são clusterizados ao redor desses centroides.
-    4. Se n_fixados > n_setores, os extras são tratados como setores adicionais.
-
-    Args:
-        gdf: GeoDataFrame com todos os municípios.
-        n_setores: Número total de setores desejado.
-        pesos: Dicionário de pesos para as dimensões. Usa DEFAULT_WEIGHTS se None.
-        polos_fixados: Lista de cod_ibge dos municípios fixados como polo.
-        random_state: Seed para reproducibilidade.
-
-    Returns:
-        Tupla (GeoDataFrame com coluna 'setor', lista de Setor).
     """
-    if pesos is None:
-        pesos = DEFAULT_WEIGHTS.copy()
+    pesos = ESTRATEGIAS_PESOS.get(estrategia, ESTRATEGIAS_PESOS["Geográfica (Padrão)"])
 
     if polos_fixados is None:
         polos_fixados = []
