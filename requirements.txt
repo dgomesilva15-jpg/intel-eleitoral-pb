@@ -1,45 +1,44 @@
 # ============================================================
 # Inteligência Logística Eleitoral - Paraíba
 # requirements.txt
+# (Versões despinadas para maior compatibilidade com Streamlit Cloud)
 # ============================================================
 
 # --- Interface ---
-streamlit==1.35.0
-streamlit-folium==0.20.0
+streamlit
+streamlit-folium
 
 # --- Mapeamento ---
-folium==0.16.0
-branca==0.7.2
+folium
+branca
 
 # --- Processamento de Dados Geoespaciais ---
-geopandas==0.14.4
-shapely==2.0.4
-pyproj==3.6.1
-fiona==1.9.6
-
-# --- Dados do Brasil (IBGE) ---
-geobr==1.8.1
+geopandas
+shapely
+pyproj
+# geobr foi removido para evitar erros de compilação C/C++ no servidor
+# A aplicação fará fallback automático para a base sintética.
 
 # --- Processamento de Dados ---
-pandas==2.2.2
-numpy==1.26.4
-openpyxl==3.1.2
+pandas
+numpy
+openpyxl
 
 # --- Machine Learning / Clusterização ---
-scikit-learn==1.4.2
+scikit-learn
 
 # --- Roteirização ---
-openrouteservice==2.3.3
-requests==2.31.0
+openrouteservice
+requests
 
 # --- Leitura de PDF ---
-pdfplumber==0.11.1
-PyPDF2==3.0.1
+pdfplumber
+PyPDF2
 
 # --- Fuzzy Matching ---
-thefuzz==0.22.1
-python-Levenshtein==0.25.1
+thefuzz
+Levenshtein
 
 # --- Cache e utilitários ---
-joblib==1.4.2
-python-dotenv==1.0.1
+joblib
+python-dotenv
