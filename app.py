@@ -614,18 +614,15 @@ def main() -> None:
                 )
 
                 if satelites_no_raio:
-                    nomes_sats = [s["municipio"] for s in satelites_no_raio]
-                    selecionados = st.multiselect(
-                        f"Cidades no raio de {tempo_isocronos} min ({len(satelites_no_raio)} disponíveis)",
-                        options=nomes_sats,
-                        default=nomes_sats[:5],
-                    )
-                    cidades_alvo_rota = [s for s in satelites_no_raio if s["municipio"] in selecionados]
+                    st.markdown(f"**📍 Cidades alcançáveis:** {len(satelites_no_raio)}")
+                    cidades_alvo_rota = satelites_no_raio
+                else:
+                    st.warning("Nenhuma cidade alcançável neste tempo de viagem.")
 
-            # Botão: calcular rota
+            # Botão: calcular rota (agora chamado "Traçar Rotas")
             if polo_selecionado and cidades_alvo_rota:
-                if st.button("🗺️ Calcular Rota do Dia", use_container_width=True):
-                    with st.spinner("📐 Calculando matriz de distâncias..."):
+                if st.button("🗺️ Traçar Rotas", use_container_width=True):
+                    with st.spinner("📐 Traçando as melhores rotas do dia..."):
                         ors_client = st.session_state.get(SESSION_KEY_ORS)
                         rotas_resultado = calcular_rota_custo_beneficio(
                             polo_nome=str(polo_selecionado.get("municipio", "")),
