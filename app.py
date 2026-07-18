@@ -241,7 +241,7 @@ def construir_mapa(
     # ------------------------------------------------------------------
     # Camada 1: Marcadores de municípios
     # ------------------------------------------------------------------
-    cluster_group = MarkerCluster(name="Municípios", show=mostrar_clusters)
+    cluster_group = folium.FeatureGroup(name="Municípios", show=mostrar_clusters)
 
     for _, row in gdf.iterrows():
         status = str(row.get("status_politico", "Neutro"))
@@ -515,11 +515,11 @@ def main() -> None:
 
         # Pesos do algoritmo
         with st.expander("⚙️ Ajustar Pesos do Algoritmo"):
-            peso_geo = st.slider("Peso Geográfico", 0.5, 3.0, 1.0, 0.1)
-            peso_el = st.slider("Peso Eleitorado", 0.5, 5.0, 2.5, 0.1)
-            peso_al = st.slider("Peso Alinhamento Prefeito", 0.5, 3.0, 1.8, 0.1)
-            peso_lid = st.slider("Peso Liderança Local", 0.5, 3.0, 1.5, 0.1)
-            peso_aliado = st.slider("Bonus Status Aliado", 0.5, 4.0, 2.0, 0.1)
+            peso_geo = st.slider("Peso Geográfico", 1.0, 20.0, 10.0, 0.5)
+            peso_el = st.slider("Peso Eleitorado", 0.5, 5.0, 1.5, 0.1)
+            peso_al = st.slider("Peso Alinhamento Prefeito", 0.5, 3.0, 1.0, 0.1)
+            peso_lid = st.slider("Peso Liderança Local", 0.5, 3.0, 1.0, 0.1)
+            peso_aliado = st.slider("Bonus Status Aliado", 0.5, 4.0, 1.2, 0.1)
 
         pesos_custom = {
             "geo": peso_geo,
@@ -780,6 +780,20 @@ def main() -> None:
 
     with col_painel:
         st.markdown("#### 📊 Painel de Rota")
+
+        if polo_selecionado and cidades_alvo_rota:
+            st.markdown(f"**📍 Municípios no Raio de {tempo_isocronos} min:**")
+            st.markdown(f"<div style='font-size:0.8rem;color:#94a3b8;margin-bottom:10px'>A partir do polo: {polo_selecionado.get('municipio')}</div>", unsafe_allow_html=True)
+            for cidade in cidades_alvo_rota:
+                status = cidade.get('status_politico', 'Neutro')
+                cor_dot = STATUS_COLORS.get(status, '#94a3b8')
+                st.markdown(f"""
+                <div style="background:rgba(255,255,255,0.05);border-left:3px solid {cor_dot};padding:4px 8px;margin-bottom:4px;border-radius:0 4px 4px 0;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span>{cidade['municipio']}</span>
+                  <span style="color:#e2e8f0;font-weight:600;font-size:0.75rem;">{int(cidade.get('eleitorado_total', 0)):,} el.</span>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown("---")
 
         if rotas_resultado:
             total_km = sum(r.distancia_km for r in rotas_resultado)
