@@ -223,11 +223,10 @@ def construir_mapa(
         prefer_canvas=True,
     )
 
-    # Camada base: CartoDB Light
+    # Camada base: OpenStreetMap (estilo mapa de ruas clássico, semelhante ao Google Maps)
     folium.TileLayer(
-        tiles="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        attr="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> &copy; <a href='https://carto.com/'>CARTO</a>",
-        name="Light Matter",
+        tiles="OpenStreetMap",
+        name="Mapa de Ruas",
         max_zoom=19,
     ).add_to(mapa)
 
