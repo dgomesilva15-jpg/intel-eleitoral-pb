@@ -86,19 +86,19 @@ st.markdown("""
     font-family: 'Inter', sans-serif;
   }
 
-  /* Fundo escuro premium */
+  /* Fundos */
   .stApp {
-    background: linear-gradient(135deg, #0f0f1a 0%, #0d1527 50%, #0a0a16 100%);
+    background: #f8fafc;
   }
 
-  /* Sidebar escura */
+  /* Sidebar */
   section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #111827 0%, #0d1117 100%);
-    border-right: 1px solid rgba(99, 102, 241, 0.3);
+    background: #f1f5f9;
+    border-right: 1px solid #e2e8f0;
   }
 
   section[data-testid="stSidebar"] .stMarkdown h3 {
-    color: #818cf8;
+    color: #4f46e5;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.15em;
