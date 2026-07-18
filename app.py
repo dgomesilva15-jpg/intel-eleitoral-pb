@@ -592,7 +592,10 @@ def main() -> None:
         satelites_no_raio: List[Dict] = []
         cidades_alvo_rota: List[Dict] = []
 
-        if setores_disponiveis:
+        if not setores_disponiveis:
+            st.info("👆 Gere os setores primeiro para habilitar a roteirização.")
+            st.button("🗺️ Traçar Rotas", disabled=True, use_container_width=True)
+        else:
             st.markdown("### 🎯 Setor do Dia")
             opcoes_setores = {
                 f"Setor #{s.id_setor} – {s.polo.get('municipio', '')} ({s.total_eleitorado:,} eleit.)": s.id_setor
@@ -625,20 +628,20 @@ def main() -> None:
                 else:
                     st.warning("Nenhuma cidade alcançável neste tempo de viagem.")
 
-            # Botão: calcular rota (agora chamado "Traçar Rotas")
-            if polo_selecionado and cidades_alvo_rota:
-                if st.button("🗺️ Traçar Rotas", use_container_width=True):
-                    with st.spinner("📐 Traçando as melhores rotas do dia..."):
-                        ors_client = st.session_state.get(SESSION_KEY_ORS)
-                        rotas_resultado = calcular_rota_custo_beneficio(
-                            polo_nome=str(polo_selecionado.get("municipio", "")),
-                            polo_lat=float(polo_selecionado["lat"]),
-                            polo_lon=float(polo_selecionado["lon"]),
-                            cidades_alvo=cidades_alvo_rota,
-                            ors_client=ors_client,
-                        )
-                        st.session_state["rotas_resultado"] = rotas_resultado
-                        st.rerun()
+            # Botão sempre visível, desabilitado se não houver cidades alvo
+            pode_tracar = bool(polo_selecionado and cidades_alvo_rota)
+            if st.button("🗺️ Traçar Rotas", disabled=not pode_tracar, use_container_width=True):
+                with st.spinner("📐 Traçando as melhores rotas do dia..."):
+                    ors_client = st.session_state.get(SESSION_KEY_ORS)
+                    rotas_resultado = calcular_rota_custo_beneficio(
+                        polo_nome=str(polo_selecionado.get("municipio", "")),
+                        polo_lat=float(polo_selecionado["lat"]),
+                        polo_lon=float(polo_selecionado["lon"]),
+                        cidades_alvo=cidades_alvo_rota,
+                        ors_client=ors_client,
+                    )
+                    st.session_state["rotas_resultado"] = rotas_resultado
+                    st.rerun()
 
         st.divider()
         if st.button("🔄 Resetar Dados", use_container_width=True):
