@@ -380,7 +380,9 @@ def construir_mapa(
                     poligono_unificado = gdf[mask].geometry.unary_union
                     
                     if poligono_unificado and not poligono_unificado.is_empty:
-                        folium.GeoJson(
+                        # Previne crash do Leaflet se for um tipo de geometria inválido para fill
+                        if poligono_unificado.geom_type in ['Polygon', 'MultiPolygon']:
+                            folium.GeoJson(
                             poligono_unificado.__geo_interface__,
                             style_function=lambda f, cor=setor.cor_hex: {
                                 "fillColor": cor,
