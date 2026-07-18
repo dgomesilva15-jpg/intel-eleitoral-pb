@@ -33,11 +33,11 @@ logger = logging.getLogger(__name__)
 # Constantes de peso padrão
 # ---------------------------------------------------------------------------
 DEFAULT_WEIGHTS = {
-    "geo": 1.0,            # Peso da proximidade geográfica (lat/lon)
-    "eleitorado": 2.5,     # Peso do eleitorado total
-    "alinhamento": 1.8,    # Peso do alinhamento com o prefeito
-    "lideranca": 1.5,      # Peso do peso_lideranca (campo do data_editor)
-    "status_aliado": 2.0,  # Bonus extra para municípios marcados como "Aliado"
+    "geo": 10.0,           # Aumentado para garantir setores geograficamente coesos
+    "eleitorado": 1.5,     # Reduzido para evitar saltos no mapa
+    "alinhamento": 1.0,    # Peso do alinhamento com o prefeito
+    "lideranca": 1.0,      # Peso do peso_lideranca (campo do data_editor)
+    "status_aliado": 1.2,  # Bonus extra para municípios marcados como "Aliado"
 }
 
 STATUS_COLORS = {
