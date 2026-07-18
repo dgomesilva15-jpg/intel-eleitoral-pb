@@ -124,14 +124,14 @@ st.markdown("""
   .kpi-value {
     font-size: 1.8rem;
     font-weight: 900;
-    background: linear-gradient(90deg, #818cf8, #c084fc);
+    background: linear-gradient(90deg, #4f46e5, #9333ea);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .kpi-label {
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: #475569;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-top: 0.15rem;
@@ -139,7 +139,7 @@ st.markdown("""
 
   /* Títulos */
   h1, h2, h3 {
-    color: #e2e8f0 !important;
+    color: #1e293b !important;
   }
 
   /* Mapa container */
@@ -147,13 +147,13 @@ st.markdown("""
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid rgba(99,102,241,0.3);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   }
 
   /* Status badges */
   .badge-aliado   { background:#14532d; color:#4ade80; border-radius:8px; padding:2px 10px; font-size:0.8rem; font-weight:600; }
   .badge-oposicao { background:#7f1d1d; color:#f87171; border-radius:8px; padding:2px 10px; font-size:0.8rem; font-weight:600; }
-  .badge-neutro   { background:#1e293b; color:#94a3b8; border-radius:8px; padding:2px 10px; font-size:0.8rem; font-weight:600; }
+  .badge-neutro   { background:#e2e8f0; color:#475569; border-radius:8px; padding:2px 10px; font-size:0.8rem; font-weight:600; }
 
   /* Botões */
   .stButton > button {
@@ -223,11 +223,11 @@ def construir_mapa(
         prefer_canvas=True,
     )
 
-    # Camada base: CartoDB Dark Matter
+    # Camada base: CartoDB Light
     folium.TileLayer(
-        tiles="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        tiles="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         attr="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> &copy; <a href='https://carto.com/'>CARTO</a>",
-        name="Dark Matter",
+        name="Light Matter",
         max_zoom=19,
     ).add_to(mapa)
 
@@ -783,7 +783,7 @@ def main() -> None:
 
         # Legenda
         st.markdown("""
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.5rem;font-size:0.75rem;color:#94a3b8">
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.5rem;font-size:0.75rem;color:#475569">
           <span>🟢 Aliado</span>
           <span>🔴 Oposição</span>
           <span>⚫ Neutro</span>
@@ -797,14 +797,14 @@ def main() -> None:
 
         if polo_selecionado and cidades_alvo_rota:
             st.markdown(f"**📍 Municípios no Raio de {tempo_isocronos} min:**")
-            st.markdown(f"<div style='font-size:0.8rem;color:#94a3b8;margin-bottom:10px'>A partir do polo: {polo_selecionado.get('municipio')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:0.8rem;color:#64748b;margin-bottom:10px'>A partir do polo: {polo_selecionado.get('municipio')}</div>", unsafe_allow_html=True)
             for cidade in cidades_alvo_rota:
                 status = cidade.get('status_politico', 'Neutro')
-                cor_dot = STATUS_COLORS.get(status, '#94a3b8')
+                cor_dot = STATUS_COLORS.get(status, '#64748b')
                 st.markdown(f"""
-                <div style="background:rgba(255,255,255,0.05);border-left:3px solid {cor_dot};padding:4px 8px;margin-bottom:4px;border-radius:0 4px 4px 0;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;">
+                <div style="background:rgba(0,0,0,0.03);border-left:3px solid {cor_dot};padding:4px 8px;margin-bottom:4px;border-radius:0 4px 4px 0;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;">
                   <span>{cidade['municipio']}</span>
-                  <span style="color:#e2e8f0;font-weight:600;font-size:0.75rem;">{int(cidade.get('eleitorado_total', 0)):,} el.</span>
+                  <span style="color:#334155;font-weight:600;font-size:0.75rem;">{int(cidade.get('eleitorado_total', 0)):,} el.</span>
                 </div>
                 """, unsafe_allow_html=True)
             st.markdown("---")
@@ -826,11 +826,11 @@ def main() -> None:
                 bar_width = int(cb_pct * 100)
                 st.markdown(f"""
                 <div style="margin-bottom:0.6rem">
-                  <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#e2e8f0">
+                  <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#334155">
                     <span>#{i+1} {rota.destino[:20]}</span>
-                    <span style="color:#818cf8">{rota.custo_beneficio:.0f} el/min</span>
+                    <span style="color:#4f46e5">{rota.custo_beneficio:.0f} el/min</span>
                   </div>
-                  <div style="background:#1e293b;border-radius:4px;height:6px;margin-top:3px">
+                  <div style="background:#e2e8f0;border-radius:4px;height:6px;margin-top:3px">
                     <div style="background:linear-gradient(90deg,#6366f1,#22c55e);width:{bar_width}%;height:100%;border-radius:4px"></div>
                   </div>
                   <div style="font-size:0.65rem;color:#64748b">{rota.distancia_km:.1f}km · {rota.tempo_minutos:.0f}min · {rota.eleitores_destino:,} eleit.</div>
@@ -864,8 +864,8 @@ def main() -> None:
                     polo = setor.polo
                     score = calcular_score_polo(polo)
                     st.markdown(f"""
-                    <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:0.5rem 0.75rem;margin-bottom:0.4rem;font-size:0.8rem">
-                      <b style="color:#818cf8">{polo.get('municipio')}</b>
+                    <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:10px;padding:0.5rem 0.75rem;margin-bottom:0.4rem;font-size:0.8rem">
+                      <b style="color:#2563eb">{polo.get('municipio')}</b>
                       <div style="color:#64748b">Setor #{setor.id_setor} · {setor.total_eleitorado:,} eleit.</div>
                     </div>
                     """, unsafe_allow_html=True)
