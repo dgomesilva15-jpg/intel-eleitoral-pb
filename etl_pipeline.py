@@ -310,34 +310,39 @@ def carregar_base_mestra(
     forcar_regerar: bool = False
 ) -> gpd.GeoDataFrame:
     """
-    Ponto de entrada principal do ETL.
-
-    Estratégia:
-    1. Tenta carregar do cache local (pickle).
-    2. Se usar_geobr=True, tenta baixar a malha via geobr (requer internet).
-    3. Fallback: dados sintéticos completos.
-
-    Args:
-        usar_geobr: Se True, tenta baixar polígonos reais via geobr.
-        forcar_regerar: Se True, ignora o cache e regera os dados.
-
-    Returns:
-        GeoDataFrame com a Base Mestra unificada.
+    Carrega a malha oficial do IBGE e mescla com os dados simulados do TSE/IBGE.
     """
     CACHE_PATH.mkdir(exist_ok=True)
     cache_file = CACHE_PATH / "base_mestra.pkl"
 
     if cache_file.exists() and not forcar_regerar:
         logger.info("Carregando Base Mestra do cache local.")
-        return gpd.read_file(cache_file) if cache_file.suffix == ".geojson" else pd.read_pickle(cache_file)
+        return pd.read_pickle(cache_file)
 
-    if usar_geobr:
-        gdf = _tentar_carregar_geobr()
-    else:
-        gdf = None
+    try:
+        # Carregar GeoJSON local
+        logger.info(f"Carregando malha do IBGE de {GEOJSON_FALLBACK}")
+        malha_pb = gpd.read_file(GEOJSON_FALLBACK)
+        # O IBGE retorna 'id' (codigo) e 'name'
+        malha_pb = malha_pb.rename(columns={"id": "cod_ibge", "name": "municipio"})
+        # Garantir tipo int
+        malha_pb["cod_ibge"] = malha_pb["cod_ibge"].astype(str).str[:7].astype(int) 
 
-    if gdf is None:
-        logger.info("Gerando Base Mestra sintética (modo offline/demo).")
+        # Dados sintéticos de eleitorado (tem o dict de 223 cidades)
+        sintetico = _gerar_dados_sinteticos()
+        # descartar geometria do sintético (pontos) pois usaremos os polígonos reais
+        sintetico = sintetico.drop(columns=["geometria", "lat", "lon"])
+        
+        # Merge
+        gdf = malha_pb.merge(sintetico, on="cod_ibge", how="inner", suffixes=("", "_syn"))
+        
+        # Calcular centroides para as operações que precisam de lat/lon (ex: ORS)
+        gdf["lat"] = gdf.geometry.centroid.y
+        gdf["lon"] = gdf.geometry.centroid.x
+
+    except Exception as e:
+        logger.error(f"Erro ao carregar malha do IBGE: {e}")
+        logger.info("Fazendo fallback para dados sintéticos pontuais...")
         gdf = _gerar_dados_sinteticos()
 
     # Persistir em cache
