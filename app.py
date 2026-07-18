@@ -295,16 +295,23 @@ def construir_mapa(
         </div>
         """
 
-        folium.CircleMarker(
-            location=[lat, lon],
-            radius=7 if cod in polo_ids or fixado else 5,
-            color=setor_cor,
-            fill=True,
-            fill_color=cor_marcador,
-            fill_opacity=0.85,
-            weight=2,
-            tooltip=folium.Tooltip(tooltip_html, max_width=250),
-        ).add_to(mapa if cod in polo_ids or fixado else cluster_group)
+        if cod in polo_ids or fixado:
+            folium.Marker(
+                location=[lat, lon],
+                icon=folium.Icon(color=icon_color, icon='star'),
+                tooltip=folium.Tooltip(tooltip_html, max_width=250),
+            ).add_to(mapa)
+        else:
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=5,
+                color=setor_cor,
+                fill=True,
+                fill_color=cor_marcador,
+                fill_opacity=0.85,
+                weight=2,
+                tooltip=folium.Tooltip(tooltip_html, max_width=250),
+            ).add_to(cluster_group)
 
     cluster_group.add_to(mapa)
 
