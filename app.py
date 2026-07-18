@@ -374,25 +374,24 @@ def construir_mapa(
             sats = setor.satelites
             todos = [polo] + sats
 
-            if len(todos) >= 3:
-                try:
-                    from shapely.geometry import MultiPoint
-                    pontos = MultiPoint([(s["lon"], s["lat"]) for s in todos])
-                    hull = pontos.convex_hull
-
-                    folium.GeoJson(
-                        hull.__geo_interface__,
-                        style_function=lambda f, cor=setor.cor_hex: {
-                            "fillColor": cor,
-                            "fillOpacity": 0.07,
-                            "color": cor,
-                            "weight": 1.5,
-                            "dashArray": "4, 4",
-                        },
-                        tooltip=f"Setor #{setor.id_setor} | Polo: {polo.get('municipio')} | {setor.total_eleitorado:,} eleitores",
-                    ).add_to(setores_group)
-                except Exception:
-                    pass
+            try:
+                mask = gdf["setor"] == setor.id_setor
+                if mask.sum() > 0:
+                    poligono_unificado = gdf[mask].geometry.unary_union
+                    
+                    if poligono_unificado and not poligono_unificado.is_empty:
+                        folium.GeoJson(
+                            poligono_unificado.__geo_interface__,
+                            style_function=lambda f, cor=setor.cor_hex: {
+                                "fillColor": cor,
+                                "fillOpacity": 0.25,
+                                "color": cor,
+                                "weight": 2,
+                            },
+                            tooltip=f"Setor #{setor.id_setor} | Polo: {setor.polo.get('municipio')} | {setor.total_eleitorado:,} eleitores",
+                        ).add_to(setores_group)
+            except Exception as e:
+                logger.error(f"Erro ao desenhar setor {setor.id_setor}: {e}")
 
         setores_group.add_to(mapa)
 
@@ -446,6 +445,19 @@ def main() -> None:
     # SIDEBAR
     # ======================================================
     with st.sidebar:
+        with st.expander("📖 Guia de Preenchimento (Como usar)"):
+            st.markdown("""
+            **Passo a Passo:**
+            1. **Importar Dados:** Suba uma planilha com o mapeamento político das cidades.
+            2. **Clusterização:** Escolha a lógica (ex: geográfica ou afinidade) e quantos setores quer criar. Clique em 'Gerar Setores'.
+            3. **Matriz (Tabela Central):** Edite ali mesmo se uma cidade virou 'Aliado' ou se a liderança mudou. O mapa e as cores atualizam na hora!
+            4. **Painel de Rota:** Após gerar os setores, escolha o Setor do Dia e defina o tempo de viagem (Isócrona). O algoritmo mostrará as cidades alcançáveis e a melhor rota em custo-benefício.
+
+            **Legenda de Status:**
+            - 🟢 **Aliado:** Base consolidada do candidato.
+            - 🔴 **Oposição:** Dominado por adversários.
+            - ⚫ **Neutro:** Campo aberto para negociação.
+            """)
         st.markdown("### 🔑 API & Conexão")
         ors_key = st.text_input(
             "API Key – OpenRouteService",
@@ -513,21 +525,17 @@ def main() -> None:
             help="Define em quantos setores eleitorais o estado será dividido.",
         )
 
-        # Pesos do algoritmo
-        with st.expander("⚙️ Ajustar Pesos do Algoritmo"):
-            peso_geo = st.slider("Peso Geográfico", 1.0, 20.0, 10.0, 0.5)
-            peso_el = st.slider("Peso Eleitorado", 0.5, 5.0, 1.5, 0.1)
-            peso_al = st.slider("Peso Alinhamento Prefeito", 0.5, 3.0, 1.0, 0.1)
-            peso_lid = st.slider("Peso Liderança Local", 0.5, 3.0, 1.0, 0.1)
-            peso_aliado = st.slider("Bonus Status Aliado", 0.5, 4.0, 1.2, 0.1)
-
-        pesos_custom = {
-            "geo": peso_geo,
-            "eleitorado": peso_el,
-            "alinhamento": peso_al,
-            "lideranca": peso_lid,
-            "status_aliado": peso_aliado,
-        }
+        # Estratégias do algoritmo
+        estrategias_opcoes = [
+            "Geográfica (Padrão)",
+            "Equilíbrio de Eleitores",
+            "Afinidade Política"
+        ]
+        estrategia_selecionada = st.selectbox(
+            "Lógica da Divisão",
+            options=estrategias_opcoes,
+            help="Geográfica agrupa cidades vizinhas. Eleitores tenta manter o tamanho populacional parecido. Afinidade junta aliados."
+        )
 
         # Polos fixados manualmente
         st.markdown("### 📌 Override Manual (Polos Fixados)")
@@ -548,7 +556,7 @@ def main() -> None:
                 gdf_clusterizado, setores = clusterizar_municipios(
                     gdf=st.session_state[SESSION_KEY_GDF],
                     n_setores=n_setores,
-                    pesos=pesos_custom,
+                    estrategia=estrategia_selecionada,
                     polos_fixados=polos_fixados_ids,
                 )
                 st.session_state[SESSION_KEY_GDF] = gdf_clusterizado
