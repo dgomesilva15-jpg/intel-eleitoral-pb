@@ -44,7 +44,7 @@ STATUS_COLORS = {
 # Mapa de normalização de caracteres especiais para fuzzy matching
 _TRANS_TABLE = str.maketrans(
     "áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ",
-    "aaaaaaeeeeiiiiooooouuuucnAAAAEEEEEIIIIOOOOOUUUUCN",
+    "aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN",
 )
 
 
