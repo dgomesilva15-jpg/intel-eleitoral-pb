@@ -374,6 +374,9 @@ def construir_mapa(
                     poligono_unificado = gdf[mask].geometry.unary_union
                     
                     if poligono_unificado and not poligono_unificado.is_empty:
+                        # Fix possíveis erros de topologia que geram GeometryCollection
+                        poligono_unificado = poligono_unificado.buffer(0)
+                        
                         # Previne crash do Leaflet se for um tipo de geometria inválido para fill
                         if poligono_unificado.geom_type in ['Polygon', 'MultiPolygon']:
                             feature = {
