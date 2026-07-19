@@ -238,9 +238,8 @@ def construir_mapa(
         polo_ids.add(setor.polo.get("cod_ibge"))
 
     # ------------------------------------------------------------------
-    # Camada 1: Marcadores de municípios
+    # Camada 1: Marcadores de cidades-polo
     # ------------------------------------------------------------------
-    cluster_group = folium.FeatureGroup(name="Municípios", show=mostrar_clusters)
 
     for _, row in gdf.iterrows():
         status = str(row.get("status_politico", "Neutro"))
@@ -300,19 +299,8 @@ def construir_mapa(
                 icon=folium.Icon(color=icon_color, icon='star'),
                 tooltip=folium.Tooltip(tooltip_html, max_width=250),
             ).add_to(mapa)
-        else:
-            folium.CircleMarker(
-                location=[lat, lon],
-                radius=5,
-                color=setor_cor,
-                fill=True,
-                fill_color=cor_marcador,
-                fill_opacity=0.85,
-                weight=2,
-                tooltip=folium.Tooltip(tooltip_html, max_width=250),
-            ).add_to(cluster_group)
 
-    cluster_group.add_to(mapa)
+    # Nota: Removido cluster_group e CircleMarkers para reduzir poluição visual e focar nos macrossetores.
 
     # ------------------------------------------------------------------
     # Camada 2: Isócrona
@@ -388,16 +376,21 @@ def construir_mapa(
                     if poligono_unificado and not poligono_unificado.is_empty:
                         # Previne crash do Leaflet se for um tipo de geometria inválido para fill
                         if poligono_unificado.geom_type in ['Polygon', 'MultiPolygon']:
+                            feature = {
+                                "type": "Feature",
+                                "geometry": poligono_unificado.__geo_interface__,
+                                "properties": {"id_setor": setor.id_setor}
+                            }
                             folium.GeoJson(
-                            poligono_unificado.__geo_interface__,
-                            style_function=lambda f, cor=setor.cor_hex: {
-                                "fillColor": cor,
-                                "fillOpacity": 0.25,
-                                "color": cor,
-                                "weight": 2,
-                            },
-                            tooltip=f"Setor #{setor.id_setor} | Polo: {setor.polo.get('municipio')} | {setor.total_eleitorado:,} eleitores",
-                        ).add_to(setores_group)
+                                feature,
+                                style_function=lambda f, cor=setor.cor_hex: {
+                                    "fillColor": cor,
+                                    "fillOpacity": 0.35,
+                                    "color": cor,
+                                    "weight": 2,
+                                },
+                                tooltip=f"Setor #{setor.id_setor} | Polo: {setor.polo.get('municipio')} | {setor.total_eleitorado:,} eleitores",
+                            ).add_to(setores_group)
             except Exception as e:
                 logger.error(f"Erro ao desenhar setor {setor.id_setor}: {e}")
 
@@ -589,59 +582,10 @@ def main() -> None:
         setores_disponiveis = st.session_state.get(SESSION_KEY_SETORES, [])
         setor_selecionado_id: Optional[int] = None
         polo_selecionado = None
-        satelites_no_raio: List[Dict] = []
-        cidades_alvo_rota: List[Dict] = []
-
         if not setores_disponiveis:
             st.info("👆 Gere os setores primeiro para habilitar a roteirização.")
-            st.button("🗺️ Traçar Rotas", disabled=True, use_container_width=True)
         else:
-            st.markdown("### 🎯 Setor do Dia")
-            opcoes_setores = {
-                f"Setor #{s.id_setor} – {s.polo.get('municipio', '')} ({s.total_eleitorado:,} eleit.)": s.id_setor
-                for s in setores_disponiveis
-            }
-            setor_escolhido_label = st.selectbox(
-                "Selecione o Setor",
-                options=list(opcoes_setores.keys()),
-            )
-            setor_selecionado_id = opcoes_setores[setor_escolhido_label]
-            setor_obj = next((s for s in setores_disponiveis if s.id_setor == setor_selecionado_id), None)
-
-            if setor_obj:
-                polo_selecionado = setor_obj.polo
-                st.markdown(f"**🏙️ Polo:** {polo_selecionado.get('municipio')}")
-                st.markdown(f"**👥 Eleitorado Polo:** {int(polo_selecionado.get('eleitorado_total', 0)):,}")
-
-                # Filtrar satélites pelo raio (convertendo tempo → km estimado a 65km/h)
-                raio_km_estimado = (tempo_isocronos / 60.0) * 65.0
-                satelites_no_raio, fora_raio = filtrar_satelites_no_raio(
-                    polo_lat=float(polo_selecionado["lat"]),
-                    polo_lon=float(polo_selecionado["lon"]),
-                    satelites=setor_obj.satelites,
-                    raio_km=raio_km_estimado,
-                )
-
-                if satelites_no_raio:
-                    st.markdown(f"**📍 Cidades alcançáveis:** {len(satelites_no_raio)}")
-                    cidades_alvo_rota = satelites_no_raio
-                else:
-                    st.warning("Nenhuma cidade alcançável neste tempo de viagem.")
-
-            # Botão sempre visível, desabilitado se não houver cidades alvo
-            pode_tracar = bool(polo_selecionado and cidades_alvo_rota)
-            if st.button("🗺️ Traçar Rotas", disabled=not pode_tracar, use_container_width=True):
-                with st.spinner("📐 Traçando as melhores rotas do dia..."):
-                    ors_client = st.session_state.get(SESSION_KEY_ORS)
-                    rotas_resultado = calcular_rota_custo_beneficio(
-                        polo_nome=str(polo_selecionado.get("municipio", "")),
-                        polo_lat=float(polo_selecionado["lat"]),
-                        polo_lon=float(polo_selecionado["lon"]),
-                        cidades_alvo=cidades_alvo_rota,
-                        ors_client=ors_client,
-                    )
-                    st.session_state["rotas_resultado"] = rotas_resultado
-                    st.rerun()
+            st.info("👈 Clique no mapa em cima do setor desejado para ver as cidades e traçar a rota no painel direito.")
 
         st.divider()
         if st.button("🔄 Resetar Dados", use_container_width=True):
@@ -655,6 +599,24 @@ def main() -> None:
     gdf_atual = st.session_state[SESSION_KEY_GDF]
     setores_atuais = st.session_state.get(SESSION_KEY_SETORES, [])
     rotas_resultado: List[RouteResult] = st.session_state.get("rotas_resultado", [])
+    
+    # Processar qual setor está selecionado (pelo clique no mapa)
+    setor_selecionado_id = st.session_state.get("setor_clicado_id")
+    setor_obj = next((s for s in setores_atuais if s.id_setor == setor_selecionado_id), None)
+    
+    polo_selecionado = None
+    cidades_alvo_rota = []
+    
+    if setor_obj:
+        polo_selecionado = setor_obj.polo
+        raio_km_estimado = (tempo_isocronos / 60.0) * 65.0
+        satelites_no_raio, _ = filtrar_satelites_no_raio(
+            polo_lat=float(polo_selecionado["lat"]),
+            polo_lon=float(polo_selecionado["lon"]),
+            satelites=setor_obj.satelites,
+            raio_km=raio_km_estimado,
+        )
+        cidades_alvo_rota = satelites_no_raio
 
     # ------ KPIs ------
     total_eleitorado = int(gdf_atual["eleitorado_total"].sum())
@@ -780,8 +742,16 @@ def main() -> None:
         )
 
         st.markdown('<div class="map-container">', unsafe_allow_html=True)
-        st_folium(mapa_folium, use_container_width=True, height=580, returned_objects=[])
+        st_data = st_folium(mapa_folium, use_container_width=True, height=580, returned_objects=["last_active_drawing"])
         st.markdown("</div>", unsafe_allow_html=True)
+
+        # Tratar clique no setor
+        if st_data and st_data.get("last_active_drawing"):
+            props = st_data["last_active_drawing"].get("properties", {})
+            clicked_id = props.get("id_setor")
+            if clicked_id is not None and st.session_state.get("setor_clicado_id") != clicked_id:
+                st.session_state["setor_clicado_id"] = clicked_id
+                st.rerun()
 
         # Legenda
         st.markdown("""
@@ -797,8 +767,29 @@ def main() -> None:
     with col_painel:
         st.markdown("#### 📊 Painel de Rota")
 
-        if polo_selecionado and cidades_alvo_rota:
-            st.markdown(f"**📍 Municípios no Raio de {tempo_isocronos} min:**")
+        if setor_obj and polo_selecionado:
+            st.markdown(f"**🏙️ Polo:** {polo_selecionado.get('municipio')}")
+            st.markdown(f"**👥 Eleitorado Polo:** {int(polo_selecionado.get('eleitorado_total', 0)):,}")
+            
+            # Botão de Traçar Rotas movido para cá
+            if cidades_alvo_rota:
+                if st.button("🗺️ Traçar Rotas", use_container_width=True):
+                    with st.spinner("📐 Traçando rotas do setor..."):
+                        ors_client = st.session_state.get(SESSION_KEY_ORS)
+                        rotas_resultado = calcular_rota_custo_beneficio(
+                            polo_nome=str(polo_selecionado.get("municipio", "")),
+                            polo_lat=float(polo_selecionado["lat"]),
+                            polo_lon=float(polo_selecionado["lon"]),
+                            cidades_alvo=cidades_alvo_rota,
+                            ors_client=ors_client,
+                        )
+                        st.session_state["rotas_resultado"] = rotas_resultado
+                        st.rerun()
+            else:
+                st.warning("Nenhuma cidade alcançável no tempo definido.")
+
+            st.markdown("---")
+            st.markdown(f"**📍 Municípios no Raio ({tempo_isocronos} min):**")
             st.markdown(f"<div style='font-size:0.8rem;color:#64748b;margin-bottom:10px'>A partir do polo: {polo_selecionado.get('municipio')}</div>", unsafe_allow_html=True)
             for cidade in cidades_alvo_rota:
                 status = cidade.get('status_politico', 'Neutro')
