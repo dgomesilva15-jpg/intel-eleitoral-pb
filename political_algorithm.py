@@ -34,29 +34,32 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 ESTRATEGIAS_PESOS = {
     "Geográfica (Padrão)": {
-        "geo": 15.0,           
+        "geo_lat": 0.5,
+        "geo_lon": 15.0,           
         "eleitorado": 0.5,     
         "alinhamento": 0.5,    
         "lideranca": 0.5,      
         "status_aliado": 0.5,  
     },
     "Equilíbrio de Eleitores": {
-        "geo": 3.0,
+        "geo_lat": 0.2,
+        "geo_lon": 8.0,
         "eleitorado": 8.0,
         "alinhamento": 0.5,
         "lideranca": 0.5,
         "status_aliado": 0.5,
     },
     "Afinidade Política": {
-        "geo": 4.0,
+        "geo_lat": 0.2,
+        "geo_lon": 8.0,
         "eleitorado": 0.5,
         "alinhamento": 5.0,
         "lideranca": 2.0,
         "status_aliado": 6.0,
     },
     "Faixas Longitudinais (Norte-Sul)": {
-        "geo_lat": 0.5,       # Pouco peso na latitude (permite esticar norte-sul)
-        "geo_lon": 25.0,      # Muito peso na longitude (fatia verticalmente)
+        "geo_lat": 0.5,       
+        "geo_lon": 25.0,      
         "eleitorado": 0.5,
         "alinhamento": 0.5,
         "lideranca": 0.5,
