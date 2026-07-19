@@ -313,7 +313,7 @@ def carregar_base_mestra(
     Carrega a malha oficial do IBGE e mescla com os dados simulados do TSE/IBGE.
     """
     CACHE_PATH.mkdir(exist_ok=True)
-    cache_file = CACHE_PATH / "base_mestra_v3.pkl"
+    cache_file = CACHE_PATH / "base_mestra_v4.pkl"
 
     if cache_file.exists() and not forcar_regerar:
         logger.info("Carregando Base Mestra do cache local.")
