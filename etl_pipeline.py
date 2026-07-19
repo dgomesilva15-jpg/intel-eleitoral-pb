@@ -323,8 +323,8 @@ def carregar_base_mestra(
         # Carregar GeoJSON local
         logger.info(f"Carregando malha do IBGE de {GEOJSON_FALLBACK}")
         malha_pb = gpd.read_file(GEOJSON_FALLBACK)
-        # O IBGE retorna 'id' (codigo) e 'name'
-        malha_pb = malha_pb.rename(columns={"id": "cod_ibge", "name": "municipio"})
+        # O IBGE retorna 'id' (codigo) e 'name', mas o IBGE v2 / malha local pode usar 'codarea'
+        malha_pb = malha_pb.rename(columns={"id": "cod_ibge", "codarea": "cod_ibge", "name": "municipio"})
         # Garantir tipo int
         malha_pb["cod_ibge"] = malha_pb["cod_ibge"].astype(str).str[:7].astype(int) 
 
