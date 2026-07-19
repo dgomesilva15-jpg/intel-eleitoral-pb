@@ -529,6 +529,7 @@ def main() -> None:
         # Estratégias do algoritmo
         estrategias_opcoes = [
             "Geográfica (Padrão)",
+            "Faixas Longitudinais (Norte-Sul)",
             "Equilíbrio de Eleitores",
             "Afinidade Política"
         ]
