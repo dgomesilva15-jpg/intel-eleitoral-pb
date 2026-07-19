@@ -53,6 +53,14 @@ ESTRATEGIAS_PESOS = {
         "alinhamento": 5.0,
         "lideranca": 2.0,
         "status_aliado": 6.0,
+    },
+    "Faixas Longitudinais (Norte-Sul)": {
+        "geo_lat": 0.5,       # Pouco peso na latitude (permite esticar norte-sul)
+        "geo_lon": 25.0,      # Muito peso na longitude (fatia verticalmente)
+        "eleitorado": 0.5,
+        "alinhamento": 0.5,
+        "lideranca": 0.5,
+        "status_aliado": 0.5,
     }
 }
 
@@ -138,8 +146,8 @@ def _construir_feature_matrix(
 
     # Matriz ponderada: distância geográfica atrai, alto eleitorado/alinhamento repele clusters fracos
     X = np.hstack([
-        lat_n * pesos.get("geo", 1.0),
-        lon_n * pesos.get("geo", 1.0),
+        lat_n * pesos.get("geo_lat", pesos.get("geo", 1.0)),
+        lon_n * pesos.get("geo_lon", pesos.get("geo", 1.0)),
         el_n * pesos.get("eleitorado", 2.5),
         al_n * pesos.get("alinhamento", 1.8),
         lid_n * pesos.get("lideranca", 1.5),
