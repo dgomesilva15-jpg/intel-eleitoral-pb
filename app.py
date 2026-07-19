@@ -552,8 +552,14 @@ def main() -> None:
 
         polos_fixados_ids = gdf_atual[gdf_atual["municipio"].isin(polos_fixados_nomes)]["cod_ibge"].tolist()
 
-        if st.button("⚡ Gerar / Atualizar Setores", use_container_width=True):
-            with st.spinner("🔄 Executando K-Means político..."):
+        if polos_fixados_nomes:
+            if n_setores > len(polos_fixados_nomes):
+                st.caption(f"ℹ️ O algoritmo criará **{n_setores} setores** no total: **{len(polos_fixados_nomes)}** com os polos que você fixou e **{n_setores - len(polos_fixados_nomes)}** calculados automaticamente.")
+            elif n_setores <= len(polos_fixados_nomes):
+                st.caption(f"⚠️ Você fixou **{len(polos_fixados_nomes)}** polos. O número de setores será ajustado para ser exatamente **{len(polos_fixados_nomes)}**.")
+
+        if st.button("⚡ Aplicar setores", use_container_width=True, type="primary"):
+            with st.spinner("🔄 Executando IA de Clusterização..."):
                 gdf_clusterizado, setores = clusterizar_municipios(
                     gdf=st.session_state[SESSION_KEY_GDF],
                     n_setores=n_setores,
@@ -563,7 +569,7 @@ def main() -> None:
                 st.session_state[SESSION_KEY_GDF] = gdf_clusterizado
                 st.session_state[SESSION_KEY_SETORES] = setores
                 st.session_state[SESSION_KEY_EDITED] = _gdf_para_editor_df(gdf_clusterizado)
-                st.success(f"✅ {len(setores)} setores gerados!")
+                st.success(f"✅ {len(setores)} setores aplicados!")
                 st.rerun()
 
         st.divider()
